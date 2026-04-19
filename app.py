@@ -453,7 +453,7 @@ def empty_figure(message: str, height: int) -> go.Figure:
 
 def build_map_figure(map_df: pd.DataFrame, selected_ids: list[str]) -> go.Figure:
     if map_df.empty:
-        return empty_figure("No listings match the current filters.", 480)
+        return empty_figure("No listings match the current filters.", 700)
 
     revenue_max = max(float(map_df["revenue"].max()), 1.0)
     sizeref = (2.0 * revenue_max) / (28**2)
@@ -519,7 +519,7 @@ def build_map_figure(map_df: pd.DataFrame, selected_ids: list[str]) -> go.Figure
         )
     )
     fig.update_layout(
-        **base_layout(480),
+        **base_layout(700),
         mapbox={
             "style": "carto-positron",
             "zoom": 10.25,

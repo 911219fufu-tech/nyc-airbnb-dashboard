@@ -105,6 +105,13 @@ def clean_data(df: pd.DataFrame) -> pd.DataFrame:
     else:
         clean_df["property_type"] = "Unknown"
 
+    # Remove rows with unknown dashboard grouping fields so chart categories
+    # remain meaningful and rankings do not show placeholder buckets.
+    clean_df = clean_df[
+        clean_df["neighborhood"].ne("Unknown")
+        & clean_df["room_type"].ne("Unknown")
+    ].copy()
+
     clean_df = clean_df.drop_duplicates().reset_index(drop=True)
     return clean_df
 

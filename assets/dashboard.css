@@ -383,14 +383,19 @@ body {
 .chart-graph .plot-container {
   height: 100%;
   min-height: 0;
+  width: 100%;
+}
+
+.chart-graph {
+  flex: 1 1 auto;
 }
 
 .map-card {
-  min-height: 860px;
+  min-height: 820px;
 }
 
 .editorial-map-card {
-  min-height: 980px;
+  min-height: 820px;
 }
 
 .medium-card {

@@ -197,6 +197,10 @@ body {
   text-align: center;
 }
 
+.filter-group-tight-label .filter-label {
+  margin-bottom: 6px;
+}
+
 .reset-button {
   width: 100%;
   margin-top: 32px;

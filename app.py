@@ -10,6 +10,13 @@ from preprocess import run_pipeline, compute_summary
 APP_TITLE = "NYC Airbnb Performance Dashboard"
 DATA_SOURCE = "data/listings_monthly.csv"
 RECENT_MONTHS = 12
+TIME_RANGE_PRESETS = [
+    ("3m", "Last 3 months", 3),
+    ("6m", "Last 6 months", 6),
+    ("12m", "Last 12 months", 12),
+    ("24m", "Last 24 months", 24),
+    ("full", "Full history", None),
+]
 PRICE_SCALE = [
     [0.0, "#eef4ff"],
     [0.35, "#b7ccff"],
@@ -130,8 +137,8 @@ summary = compute_summary(df_recent)
 metadata = build_metadata(df_clean)
 metadata["viewing_label"] = f"Last {RECENT_MONTHS} months"
 metadata["time_range_options"] = [
-    {"label": f"Last {RECENT_MONTHS} months", "value": "recent"},
-    {"label": "Full history", "value": "full"},
+    {"label": label, "value": value}
+    for value, label, _ in TIME_RANGE_PRESETS
 ]
 metadata["recent_months"] = RECENT_MONTHS
 metadata["recent_start"] = recent_start_date
@@ -289,13 +296,13 @@ def build_layout(metadata: dict, summary: dict) -> html.Div:
                                         ],
                                     ),
                                     html.Div(
-                                        className="filter-group",
+                                        className="filter-group filter-group-tight-label",
                                         children=[
                                             html.Label("Time Range", className="filter-label"),
                                             dcc.Dropdown(
                                                 id="time-range-filter",
                                                 options=metadata["time_range_options"],
-                                                value="recent",
+                                                value="12m",
                                                 clearable=False,
                                                 searchable=False,
                                                 className="dashboard-dropdown",
@@ -303,7 +310,7 @@ def build_layout(metadata: dict, summary: dict) -> html.Div:
                                         ],
                                     ),
                                     html.Div(
-                                        className="filter-group",
+                                        className="filter-group filter-group-tight-label",
                                         children=[
                                             html.Label("Snapshot Month", className="filter-label"),
                                             dcc.Dropdown(
@@ -857,6 +864,37 @@ def aggregate_time_from_listings(listings_df: pd.DataFrame) -> pd.DataFrame:
     )
 
 
+def aggregate_map_from_listings(listings_df: pd.DataFrame) -> pd.DataFrame:
+    if listings_df.empty:
+        return pd.DataFrame(
+            columns=[
+                "listing_id",
+                "latitude",
+                "longitude",
+                "neighborhood",
+                "room_type",
+                "property_type",
+                "avg_daily_rate",
+                "revenue",
+                "occupancy",
+                "occupancy_pct",
+            ]
+        )
+
+    return (
+        listings_df.groupby(
+            ["listing_id", "latitude", "longitude", "neighborhood", "room_type", "property_type"],
+            as_index=False,
+        )
+        .agg(
+            avg_daily_rate=("avg_daily_rate", "mean"),
+            revenue=("revenue", "mean"),
+            occupancy=("occupancy", "mean"),
+            occupancy_pct=("occupancy_pct", "mean"),
+        )
+    )
+
+
 def build_banner(
     selected_month: str,
     snapshot_count: int,
@@ -883,17 +921,35 @@ def build_banner(
     ]
 
 
+def lookup_time_range_months(time_range: str) -> int | None:
+    for value, _, month_count in TIME_RANGE_PRESETS:
+        if value == time_range:
+            return month_count
+    return RECENT_MONTHS
+
+
+def lookup_time_range_label(time_range: str) -> str:
+    for value, label, _ in TIME_RANGE_PRESETS:
+        if value == time_range:
+            return label
+    return f"Last {RECENT_MONTHS} months"
+
+
 def resolve_time_scope(time_range: str, selected_month: str) -> tuple[str, str]:
     selected_month_ts = pd.to_datetime(selected_month)
-    if time_range == "recent" and selected_month_ts < recent_start_date:
-        return "full", "Full history (month override)"
-    if time_range == "full":
+    month_count = lookup_time_range_months(time_range)
+    if month_count is None:
         return "full", "Full history"
-    return "recent", f"Last {RECENT_MONTHS} months"
+
+    scope_start = end_date - pd.DateOffset(months=month_count - 1)
+    if selected_month_ts < scope_start:
+        return "full", f"{lookup_time_range_label(time_range)} (month override)"
+    return time_range, lookup_time_range_label(time_range)
 
 
 def dataset_bundle_for_scope(scope: str) -> dict[str, pd.DataFrame]:
-    if scope == "full":
+    month_count = lookup_time_range_months(scope)
+    if month_count is None:
         return {
             "clean": df_clean,
             "map": df_map,
@@ -901,12 +957,14 @@ def dataset_bundle_for_scope(scope: str) -> dict[str, pd.DataFrame]:
             "bar": df_bar,
             "time": df_time,
         }
+
+    scope_start = end_date - pd.DateOffset(months=month_count - 1)
     return {
-        "clean": df_recent,
-        "map": df_map_recent,
-        "scatter": df_scatter_recent,
-        "bar": df_bar_recent,
-        "time": df_time_recent,
+        "clean": df_clean[df_clean["month_date"] >= scope_start].copy(),
+        "map": df_map[df_map["month_date"] >= scope_start].copy(),
+        "scatter": df_scatter[df_scatter["month_date"] >= scope_start].copy(),
+        "bar": df_bar[df_bar["month_date"] >= scope_start].copy(),
+        "time": df_time[df_time["month_date"] >= scope_start].copy(),
     }
 
 
@@ -925,7 +983,7 @@ def register_callbacks(app: Dash) -> None:
         prevent_initial_call=True,
     )
     def reset_dashboard(_: int):
-        return [], [], [metadata["price_min"], metadata["price_max"]], "recent", metadata["default_month"], None
+        return [], [], [metadata["price_min"], metadata["price_max"]], "12m", metadata["default_month"], None
 
     @app.callback(
         Output("insight-banner", "children"),
@@ -966,9 +1024,16 @@ def register_callbacks(app: Dash) -> None:
         filtered_clean = apply_listing_filters(
             clean_scope_df, neighborhoods, room_types, price_range
         )
-        filtered_map = apply_listing_filters(
-            map_scope_df, neighborhoods, room_types, price_range, selected_month
+        map_base = apply_listing_filters(
+            map_scope_df, neighborhoods, room_types, price_range
         )
+
+        use_snapshot_map = effective_scope == "12m" or selected_month != metadata["default_month"]
+        if use_snapshot_map:
+            filtered_map = filter_snapshot_month(map_base, selected_month)
+        else:
+            filtered_map = aggregate_map_from_listings(map_base)
+
         filtered_scatter = apply_listing_filters(
             scatter_scope_df, neighborhoods, room_types, price_range, selected_month
         )
@@ -979,7 +1044,12 @@ def register_callbacks(app: Dash) -> None:
             time_scope_df, neighborhoods, room_types, price_range
         )
 
-        filtered_map = ensure_non_empty(filtered_map, map_scope_df)
+        fallback_map = (
+            filter_snapshot_month(map_scope_df, selected_month)
+            if use_snapshot_map
+            else aggregate_map_from_listings(map_scope_df)
+        )
+        filtered_map = ensure_non_empty(filtered_map, fallback_map)
         filtered_scatter = ensure_non_empty(filtered_scatter, scatter_scope_df)
         filtered_bar = ensure_non_empty(filtered_bar, bar_scope_df)
         filtered_time = ensure_non_empty(filtered_time, time_scope_df)
@@ -1015,7 +1085,14 @@ def register_callbacks(app: Dash) -> None:
             selected_scatter = filtered_scatter
             selected_trend_clean = filtered_clean
 
-        current_summary = compute_summary(selected_snapshot_clean)
+        snapshot_summary = compute_summary(selected_snapshot_clean)
+
+        if selected_ids:
+            kpi_source = selected_trend_clean
+        else:
+            kpi_source = filtered_clean
+
+        kpi_summary = compute_summary(kpi_source)
 
         if selected_ids:
             bar_source = aggregate_bar_from_listings(selected_snapshot_clean)
@@ -1026,7 +1103,7 @@ def register_callbacks(app: Dash) -> None:
 
         banner = build_banner(
             selected_month,
-            int(current_summary["total_listings"]),
+            int(snapshot_summary["total_listings"]),
             selected_ids,
             neighborhoods,
             room_types,
@@ -1037,10 +1114,10 @@ def register_callbacks(app: Dash) -> None:
             banner,
             scope_label,
             "",
-            f"{current_summary['total_listings']:,}",
-            format_currency(current_summary["avg_price"]),
-            format_percentage(current_summary["avg_occupancy"]),
-            format_currency(current_summary["avg_revenue"]),
+            f"{kpi_summary['total_listings']:,}",
+            format_currency(kpi_summary["avg_price"]),
+            format_percentage(kpi_summary["avg_occupancy"]),
+            format_currency(kpi_summary["avg_revenue"]),
             build_map_figure(filtered_map, selected_ids),
             build_scatter_figure(selected_scatter),
             build_bar_figure(bar_source),

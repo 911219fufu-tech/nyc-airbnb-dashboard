@@ -224,14 +224,21 @@ body {
 .main-panel {
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 14px;
+  min-width: 0;
+}
+
+.main-visual-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
   min-width: 0;
 }
 
 .editorial-layout {
   display: grid;
   grid-template-columns: minmax(0, 1.45fr) minmax(360px, 0.9fr);
-  gap: 28px;
+  gap: 24px;
   align-items: start;
   min-width: 0;
 }
@@ -240,17 +247,23 @@ body {
 .editorial-right {
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 14px;
   min-width: 0;
+}
+
+.editorial-right {
+  display: flex;
+  align-self: start;
+  height: auto;
 }
 
 .insight-banner {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 20px;
-  padding: 18px 24px;
-  border-radius: 20px;
+  gap: 14px;
+  padding: 8px 12px;
+  border-radius: 18px;
   border: 1px solid rgba(23, 32, 51, 0.05);
   background: rgba(255, 255, 255, 0.66);
   backdrop-filter: blur(14px);
@@ -262,22 +275,24 @@ body {
 }
 
 .banner-label {
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 700;
   letter-spacing: 0.11em;
   text-transform: uppercase;
   color: var(--muted);
+  line-height: 1.15;
 }
 
 .banner-value {
-  margin-top: 6px;
-  font-size: 0.98rem;
+  margin-top: 1px;
+  font-size: 0.84rem;
   font-weight: 650;
   color: var(--text);
+  line-height: 1.1;
 }
 
 .banner-secondary {
-  font-size: 0.86rem;
+  font-size: 0.78rem;
   color: var(--muted-strong);
   white-space: nowrap;
 }
@@ -285,7 +300,7 @@ body {
 .metric-strip {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 20px;
+  gap: 8px;
 }
 
 .editorial-metrics {
@@ -293,23 +308,26 @@ body {
 }
 
 .metric-card {
-  padding: 22px 24px;
-  border-radius: 20px;
+  padding: 8px 10px;
+  border-radius: 16px;
+  min-height: 0;
 }
 
 .metric-label {
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 700;
   letter-spacing: 0.11em;
   text-transform: uppercase;
   color: var(--muted);
+  line-height: 1;
 }
 
 .metric-value {
-  margin-top: 10px;
-  font-size: clamp(1.18rem, 1.8vw, 1.72rem);
+  margin-top: 1px;
+  font-size: clamp(0.96rem, 1.28vw, 1.18rem);
   font-weight: 700;
   letter-spacing: -0.03em;
+  line-height: 1;
 }
 
 .dashboard-loading {
@@ -384,11 +402,11 @@ body {
 }
 
 .scatter-card {
-  min-height: 360px;
+  min-height: 250px;
 }
 
 .bar-card {
-  min-height: 420px;
+  min-height: 250px;
 }
 
 .full-card {
@@ -396,11 +414,19 @@ body {
 }
 
 .line-card {
-  min-height: 360px;
+  min-height: 420px;
 }
 
 .editorial-side-card .card-description {
   max-width: 30ch;
+}
+
+.trend-full-width-card {
+  min-height: 500px;
+}
+
+.trend-full-width-card .card-description {
+  max-width: 44ch;
 }
 
 .span-3 {
@@ -546,6 +572,11 @@ body {
     grid-template-columns: 1fr;
   }
 
+  .editorial-right {
+    display: flex;
+    height: auto;
+  }
+
   .span-6,
   .span-8,
   .span-4 {
@@ -562,6 +593,10 @@ body {
 
   .editorial-map-card {
     min-height: 700px;
+  }
+
+  .trend-full-width-card {
+    min-height: 440px;
   }
 
   .visual-stack {

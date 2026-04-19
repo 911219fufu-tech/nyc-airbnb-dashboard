@@ -339,67 +339,72 @@ def build_layout(metadata: dict, summary: dict) -> html.Div:
                                         color=LINE_COLOR,
                                         className="dashboard-loading",
                                         children=html.Div(
-                                            className="editorial-layout",
+                                            className="main-visual-layout",
                                             children=[
                                                 html.Div(
-                                                    className="editorial-left",
+                                                    className="editorial-layout",
                                                     children=[
-                                                        html.Div(id="insight-banner", className="insight-banner"),
                                                         html.Div(
-                                                            className="metric-strip editorial-metrics",
+                                                            className="editorial-left",
                                                             children=[
-                                                                metric_card(
-                                                                    "Total Listings",
-                                                                    "metric-listings",
-                                                                    f"{summary['total_listings']:,}",
+                                                                html.Div(id="insight-banner", className="insight-banner"),
+                                                                html.Div(
+                                                                    className="metric-strip editorial-metrics",
+                                                                    children=[
+                                                                        metric_card(
+                                                                            "Total Listings",
+                                                                            "metric-listings",
+                                                                            f"{summary['total_listings']:,}",
+                                                                        ),
+                                                                        metric_card(
+                                                                            "Average Daily Rate",
+                                                                            "metric-price",
+                                                                            format_currency(summary["avg_price"]),
+                                                                        ),
+                                                                        metric_card(
+                                                                            "Average Occupancy",
+                                                                            "metric-occupancy",
+                                                                            format_percentage(summary["avg_occupancy"]),
+                                                                        ),
+                                                                        metric_card(
+                                                                            "Average Revenue",
+                                                                            "metric-revenue",
+                                                                            format_currency(summary["avg_revenue"]),
+                                                                        ),
+                                                                    ],
                                                                 ),
-                                                                metric_card(
-                                                                    "Average Daily Rate",
-                                                                    "metric-price",
-                                                                    format_currency(summary["avg_price"]),
-                                                                ),
-                                                                metric_card(
-                                                                    "Average Occupancy",
-                                                                    "metric-occupancy",
-                                                                    format_percentage(summary["avg_occupancy"]),
-                                                                ),
-                                                                metric_card(
-                                                                    "Average Revenue",
-                                                                    "metric-revenue",
-                                                                    format_currency(summary["avg_revenue"]),
+                                                                chart_card(
+                                                                    "Price and Revenue Map",
+                                                                    "Bubble size reflects revenue and color reflects average daily rate for the selected month.",
+                                                                    "airbnb-map",
+                                                                    "map-card editorial-map-card",
                                                                 ),
                                                             ],
                                                         ),
-                                                        chart_card(
-                                                            "Price and Revenue Map",
-                                                            "Bubble size reflects revenue and color reflects average daily rate for the selected month.",
-                                                            "airbnb-map",
-                                                            "map-card editorial-map-card",
+                                                        html.Div(
+                                                            className="editorial-right",
+                                                            children=[
+                                                                chart_card(
+                                                                    "Price vs Occupancy",
+                                                                    "Compare pricing against demand by room type for the selected month.",
+                                                                    "price-occupancy-scatter",
+                                                                    "editorial-side-card scatter-card",
+                                                                ),
+                                                                chart_card(
+                                                                    "Neighborhood Price Ranking",
+                                                                    "Compare neighborhoods by average daily rate using the pre-aggregated bar dataset.",
+                                                                    "neighborhood-bar",
+                                                                    "editorial-side-card bar-card",
+                                                                ),
+                                                            ],
                                                         ),
                                                     ],
                                                 ),
-                                                html.Div(
-                                                    className="editorial-right",
-                                                    children=[
-                                                        chart_card(
-                                                            "Price vs Occupancy",
-                                                            "Compare pricing against demand by room type for the selected month.",
-                                                            "price-occupancy-scatter",
-                                                            "editorial-side-card scatter-card",
-                                                        ),
-                                                        chart_card(
-                                                            "Neighborhood Price Ranking",
-                                                            "Compare neighborhoods by average daily rate using the pre-aggregated bar dataset.",
-                                                            "neighborhood-bar",
-                                                            "editorial-side-card bar-card",
-                                                        ),
-                                                        chart_card(
-                                                            "Monthly Price Trend",
-                                                            "Track how average daily rates move through the selected time range.",
-                                                            "seasonality-line",
-                                                            "editorial-side-card line-card",
-                                                        ),
-                                                    ],
+                                                chart_card(
+                                                    "Monthly Price Trend",
+                                                    "Track how average daily rates move through the selected time range.",
+                                                    "seasonality-line",
+                                                    "line-card trend-full-width-card",
                                                 ),
                                             ],
                                         ),
@@ -651,7 +656,7 @@ def build_bar_figure(bar_df: pd.DataFrame) -> go.Figure:
 
 def build_line_figure(time_df: pd.DataFrame, selected_month: str) -> go.Figure:
     if time_df.empty:
-        return empty_figure("No trend data is available after filtering.", 420)
+        return empty_figure("No trend data is available after filtering.", 500)
 
     fig = go.Figure(
         go.Scatter(
@@ -693,7 +698,7 @@ def build_line_figure(time_df: pd.DataFrame, selected_month: str) -> go.Figure:
             )
         )
 
-    fig.update_layout(**base_layout(420), hovermode="x unified", showlegend=False)
+    fig.update_layout(**base_layout(500), hovermode="x unified", showlegend=False)
     fig.update_xaxes(title=None, showgrid=False, tickformat="%b\n%Y", dtick="M1")
     fig.update_yaxes(
         title="Average Daily Rate",

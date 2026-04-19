@@ -209,10 +209,20 @@ def build_layout(metadata: dict, summary: dict) -> html.Div:
                             html.Div(
                                 className="header-chip",
                                 children=[
-                                    html.Div("Data Coverage", className="header-chip-label"),
-                                    html.Div(metadata["month_coverage"], className="header-chip-value"),
-                                    html.Div("Viewing", className="header-chip-label view-label"),
-                                    html.Div(metadata["viewing_label"], id="viewing-label", className="header-chip-value secondary"),
+                                    html.Div(
+                                        className="header-chip-section",
+                                        children=[
+                                            html.Div("Data Coverage", className="header-chip-label"),
+                                            html.Div(metadata["month_coverage"], className="header-chip-value"),
+                                        ],
+                                    ),
+                                    html.Div(
+                                        className="header-chip-section",
+                                        children=[
+                                            html.Div("Viewing", className="header-chip-label"),
+                                            html.Div(metadata["viewing_label"], id="viewing-label", className="header-chip-value secondary"),
+                                        ],
+                                    ),
                                 ],
                             ),
                         ],
@@ -230,18 +240,9 @@ def build_layout(metadata: dict, summary: dict) -> html.Div:
                                         ]
                                     ),
                                     html.Div(
-                                        className="sidebar-chip-row",
-                                        children=[
-                                            html.Div(
-                                                f"Coverage: {metadata['full_start_label']} - {metadata['full_end_label']}",
-                                                className="sidebar-chip",
-                                            ),
-                                            html.Div(
-                                                f"Viewing: {metadata['viewing_label']}",
-                                                id="sidebar-viewing-chip",
-                                                className="sidebar-chip subdued",
-                                            ),
-                                        ],
+                                        id="sidebar-viewing-chip",
+                                        className="sidebar-note",
+                                        children="",
                                     ),
                                     html.Div(
                                         className="filter-group",
@@ -869,12 +870,11 @@ def build_banner(
             children=[
                 html.Div(scope_text, className="banner-label"),
                 html.Div(
-                    f"{month_label} snapshot with {snapshot_count:,} listings in view",
+                    f"{month_label} snapshot",
                     className="banner-value",
                 ),
             ],
         ),
-        html.Div(f"{viewing_label} • {selection_text}", className="banner-secondary"),
     ]
 
 
@@ -1031,7 +1031,7 @@ def register_callbacks(app: Dash) -> None:
         return (
             banner,
             scope_label,
-            f"Viewing: {scope_label}",
+            "",
             f"{current_summary['total_listings']:,}",
             format_currency(current_summary["avg_price"]),
             format_percentage(current_summary["avg_occupancy"]),

@@ -77,8 +77,13 @@ body {
 }
 
 .header-chip {
-  min-width: 220px;
-  padding: 22px 24px;
+  min-width: 392px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 12px 15px;
+  margin-top: 24px;
+  margin-right: 18px;
   border: 1px solid var(--line);
   border-radius: 20px;
   background: rgba(255, 255, 255, 0.8);
@@ -86,8 +91,20 @@ body {
   backdrop-filter: blur(18px);
 }
 
+.header-chip-section {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-width: 0;
+  flex: 1 1 0;
+}
+
+.header-chip-section:first-child {
+  flex: 1.25 1 0;
+}
+
 .header-chip-label {
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -95,18 +112,15 @@ body {
 }
 
 .header-chip-value {
-  margin-top: 8px;
-  font-size: 0.92rem;
+  margin-top: 6px;
+  font-size: 0.88rem;
   font-weight: 650;
   color: var(--text);
-}
-
-.header-chip-label.view-label {
-  margin-top: 14px;
+  white-space: nowrap;
 }
 
 .header-chip-value.secondary {
-  font-size: 0.88rem;
+  font-size: 0.84rem;
   color: var(--muted-strong);
 }
 
@@ -603,6 +617,10 @@ body {
 
   .header-chip {
     min-width: 0;
+    width: 100%;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 14px;
   }
 
   .banner-secondary {

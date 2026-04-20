@@ -544,7 +544,7 @@ def build_map_figure(map_df: pd.DataFrame, selected_ids: list[str]) -> go.Figure
 
 def build_scatter_figure(scatter_df: pd.DataFrame) -> go.Figure:
     if scatter_df.empty:
-        return empty_figure("No listing points to compare for this month.", 480)
+        return empty_figure("No listing points to compare for this month.", 300)
 
     figure_df = scatter_df.sort_values("avg_daily_rate")
     fig = go.Figure()
@@ -565,7 +565,7 @@ def build_scatter_figure(scatter_df: pd.DataFrame) -> go.Figure:
                     )
                 ),
                 marker={
-                    "size": 11,
+                    "size": 9,
                     "color": ROOM_TYPE_COLORS.get(room_type, "#98A2B3"),
                     "opacity": 0.8,
                     "line": {"color": "#ffffff", "width": 0.8},
@@ -586,7 +586,7 @@ def build_scatter_figure(scatter_df: pd.DataFrame) -> go.Figure:
     fig.add_vline(x=price_mid, line_dash="dot", line_color="rgba(23,32,51,0.25)")
     fig.add_hline(y=occupancy_mid, line_dash="dot", line_color="rgba(23,32,51,0.25)")
     fig.update_layout(
-        **base_layout(480),
+        **base_layout(300),
         legend={
             "orientation": "h",
             "yanchor": "bottom",

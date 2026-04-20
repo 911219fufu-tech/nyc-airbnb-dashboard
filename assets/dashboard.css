@@ -411,7 +411,13 @@ body {
 }
 
 .scatter-card {
-  min-height: 250px;
+  width: min(100%, 360px);
+  min-height: 360px;
+  align-self: flex-start;
+}
+
+.scatter-card .chart-graph {
+  height: 300px;
 }
 
 .bar-card {
@@ -647,6 +653,15 @@ body {
   .span-4,
   .span-12 {
     grid-column: span 12;
+  }
+
+  .scatter-card {
+    width: 100%;
+    min-height: 320px;
+  }
+
+  .scatter-card .chart-graph {
+    height: 280px;
   }
 }
 
